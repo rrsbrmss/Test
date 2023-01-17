@@ -1,0 +1,19 @@
+---
+- name: Ping servers
+  hosts: all
+
+  tasks:
+  
+  - name: task ping
+    ping:
+
+  - name: apt update cache
+    become: yes
+    apt:
+      update_cache: yes
+
+  - name: apt upgrade
+    become: yes
+    apt:
+      upgrade: yes
+
