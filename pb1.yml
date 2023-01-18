@@ -1,0 +1,39 @@
+---
+- name: TestTask
+  hosts: all
+  become: yes
+  vars:
+    container_count: 4
+    default_container_name: docker
+    default_container_image: ubuntu
+    default_container_command: sleep 1
+
+  tasks:
+
+  - name: Install aptitude (a vdrug ego net...)
+    apt:
+      name: aptitude
+      state: latest
+      update_cache: true  
+
+  - name: Install required system packages
+    apt:
+      pkg:
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+        - python3-pip
+        - python3-setuptools
+      state: latest
+      update_cache: true
+
+  - name: Add Docker GPG apt Key
+    apt_key:
+      url: https://download.docker.com/linux/debian/gpg
+      state: present
+
+  - name: Add Docker Repository
+    apt_repository:
+      repo: deb https://download.docker.com/linux/debian bullseye stable
+      state: present
