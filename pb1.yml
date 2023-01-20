@@ -14,7 +14,7 @@
     apt:
       name: aptitude
       state: latest
-      update_cache: true  
+      update_cache: true
 
   - name: Install required system packages
     apt:
@@ -37,3 +37,72 @@
     apt_repository:
       repo: deb https://download.docker.com/linux/debian bullseye stable
       state: present
+
+  - name: Upd apt and inst docker softw
+    apt:
+      pkg:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-compose-plugin
+      state: latest
+      update_cache: true
+
+  - name: Install Docker Module for Python
+    pip:
+      name: docker
+
+  - name: start and enable docker service
+    service:
+      name: docker
+      state: started
+      enabled: true
+
+#  uncomment below if that playbook run first time
+#  - name: create custom docker network
+#    command: docker network create --subnet=10.0.0.0/24 custom_network
+
+  - name: pull & run nginx container
+    docker_container:
+      name: nginx
+      image: nginx:alpine
+      network_mode: custom_network
+      ports:
+        - "80:80"
+
+  - name: pull & run apache1 container
+    docker_container:
+      name: apache1
+      image: httpd:2.4-alpine
+      network_mode: custom_network
+      ports:
+        - "8080:80"
+      volumes:
+        - "/srv/apache/conf:/usr/local/apache2/conf"
+        - "/srv/apache/logs:/usr/local/apache2/logs"
+  - name: pull & run apache2 container
+    docker_container:
+      name: apache2
+      image: httpd:2.4-alpine
+      network_mode: custom_network
+      ports:
+        - "8081:80"
+      volumes:
+        - "/srv/apache/conf:/usr/local/apache2/conf"
+        - "/srv/apache/logs:/usr/local/apache2/logs"
+
+  - name: pull & run nginx exporter container
+    docker_container:
+      name: nginx_exporter
+      image: bitnami/nginx-exporter:latest
+      network_mode: custom_network
+
+  - name: pull & run node exporter container
+    docker_container:
+      name: node_exporter
+      image: prom/node-exporter
+      network_mode: custom_network
+
+  
+
+ 
