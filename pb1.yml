@@ -103,6 +103,27 @@
       image: prom/node-exporter
       network_mode: custom_network
 
-  
+  - name: pull & run mysql exporter container
+    docker_container:
+      name: mysql_exporter
+      image: prom/mysqld-exporter
+      network_mode: custom_network
 
+  - name: pull & run cadvisor container
+    docker_container:
+      name: cadvisor
+      image: google/cadvisor
+      network_mode: custom_network
+
+  - name: pull & run prometheus container
+    docker_container:
+      name: prometheus
+      image: prom/prometheus
+      network_mode: custom_network
+
+  - name: pull and run grafana container
+    docker_container:
+      name: grafana
+      image: grafana/grafana
+      network_mode: custom_network
  
