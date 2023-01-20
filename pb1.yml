@@ -1,12 +1,10 @@
 ---
+#  Attention!
+# before first run these tasks please scroll tasks down
+# uncomment task named "create custom docker network"
 - name: TestTask
   hosts: all
   become: yes
-  vars:
-    container_count: 4
-    default_container_name: docker
-    default_container_image: ubuntu
-    default_container_command: sleep 1
 
   tasks:
 
@@ -126,4 +124,44 @@
       name: grafana
       image: grafana/grafana
       network_mode: custom_network
+
+  - name: pull & run fluentd container
+    docker_container:
+      name: fluentd
+      image: fluent/fluentd
+      network_mode: custom_network
+
+  - name: pull & run mysql container
+    docker_container:
+      name: mysql
+      image: mysql:5.7
+      network_mode: custom_network
+      env:
+        MYSQL_ROOT_PASSWORD: password
  
+  - name: pull & run php container
+    docker_container:
+      name: php-fpm
+      image: php:7.2-fpm
+      network_mode: custom_network
+      volumes:
+        - "/srv/www/html:/var/www/html"
+
+  - name: create directories
+    file:
+      path: "/srv/{{item}}"
+      state: directory
+    with_items:
+      - nginx/conf
+      - apache/conf
+      - mysql/conf
+      - www
+
+  - name: create config files
+    template:
+      src: "{{item.src}}"
+      dest: "{{item.dest}}"
+    with_items:
+      - { src: "nginx.conf.j2", dest: "/srv/nginx/conf/nginx.conf"}
+      - { src: "apache.conf.j2", dest: "/srv/apache/conf/apache.conf"}
+      - { src: "mysql.conf.j2", dest: "/srv/mysql/conf/mysql.conf"}
