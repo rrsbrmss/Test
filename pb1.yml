@@ -60,10 +60,10 @@
 #  - name: create custom docker network
 #    command: docker network create --subnet=10.0.0.0/24 custom_network
 
-  - name: pull & run nginx container
+  - name: pull & run nginx_geoip container
     docker_container:
       name: nginx
-      image: nginx:alpine
+      image: admintuts/nginx:1.21.4-rtmp-geoip2-alpine
       network_mode: custom_network
       ports:
         - "80:80"
@@ -155,7 +155,8 @@
       - nginx/conf
       - apache/conf
       - mysql/conf
-      - www
+      - www/html/first
+      - www/html/second
 
   - name: create config files
     template:
@@ -165,3 +166,61 @@
       - { src: "nginx.conf.j2", dest: "/srv/nginx/conf/nginx.conf"}
       - { src: "apache.conf.j2", dest: "/srv/apache/conf/apache.conf"}
       - { src: "mysql.conf.j2", dest: "/srv/mysql/conf/mysql.conf"}
+      - { src: "index.php", dest: "/srv/www/html/first/index.php"}
+      - { src: "index.php", dest: "/srv/www/html/second/index.php"}
+
+  - name: create custom nginx log format
+    lineinfile:
+      path: /srv/nginx/conf/nginx.conf
+      line: '{{item}}'
+    with_items:
+      - 'log_format custom_format'
+      - '"$time_local $request_time $upstream_time $remote_addr $remote_user $time_local $request $status $body_bytes_sent $http_referer $http_user_agent $geoip_country_code";'
+
+  - name: create DNS records
+    lineinfile:
+      path: /etc/hosts
+      line: '{{item}}'
+    with_items:
+      - '10.0.0.2 nginx'
+      - '10.0.0.3 apache1'
+      - '10.0.0.4 apache2'
+      - '10.0.0.5 node_exporter'
+      - '10.0.0.6 nginx_exporter'
+      - '10.0.0.7 mysql_exporter'
+      - '10.0.0.8 cadvisor'
+      - '10.0.0.9 prometheus'
+      - '10.0.0.10 grafana'
+      - '10.0.0.11 fluentd'
+      - '10.0.0.12 mysql'
+      - '10.0.0.2 first.tst'
+      - '10.0.0.2 second.tst'
+  - name: Restart Docker service
+    service:
+      name: docker
+      state: restarted
+      enabled: true
+  - name: Restart Nginx container
+    command: docker restart nginx
+  - name: Restart Apache containers
+    command: docker restart apache1
+  - name: Restart Apache containers
+    command: docker restart apache2
+  - name: Restart Node exporter container
+    command: docker restart node_exporter
+  - name: Restart Nginx exporter container
+    command: docker restart nginx_exporter
+  - name: Restart MySQL exporter container
+    command: docker restart mysql_exporter
+  - name: Restart Cadvisor container
+    command: docker restart cadvisor
+  - name: Restart Prometheus container
+    command: docker restart prometheus
+  - name: Restart Grafana container
+    command: docker restart grafana
+  - name: Restart Fluentd container
+    command: docker restart fluentd
+  - name: Restart MySQL container
+    command: docker restart mysql
+  - name: Check if all containers are running
+    command: docker ps
