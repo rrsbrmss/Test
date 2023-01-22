@@ -63,10 +63,15 @@
   - name: pull & run nginx_geoip container
     docker_container:
       name: nginx
-      image: admintuts/nginx:1.21.4-rtmp-geoip2-alpine
+      image: anroe/nginx-geoip2
       network_mode: custom_network
       ports:
         - "80:80"
+      volumes:
+        - "/srv/nginx/conf:/etc/nginx/conf.d"
+        - "/srv/nginx/logs:/var/log/nginx"
+
+
 
   - name: pull & run apache1 container
     docker_container:
@@ -74,7 +79,7 @@
       image: httpd:2.4-alpine
       network_mode: custom_network
       ports:
-        - "8080:80"
+        - "8081:80"
       volumes:
         - "/srv/apache/conf:/usr/local/apache2/conf"
         - "/srv/apache/logs:/usr/local/apache2/logs"
@@ -84,7 +89,7 @@
       image: httpd:2.4-alpine
       network_mode: custom_network
       ports:
-        - "8081:80"
+        - "8082:80"
       volumes:
         - "/srv/apache/conf:/usr/local/apache2/conf"
         - "/srv/apache/logs:/usr/local/apache2/logs"
@@ -166,16 +171,32 @@
       - { src: "nginx.conf.j2", dest: "/srv/nginx/conf/nginx.conf"}
       - { src: "apache.conf.j2", dest: "/srv/apache/conf/apache.conf"}
       - { src: "mysql.conf.j2", dest: "/srv/mysql/conf/mysql.conf"}
-      - { src: "index.php", dest: "/srv/www/html/first/index.php"}
-      - { src: "index.php", dest: "/srv/www/html/second/index.php"}
+      - { src: "index.php", dest: "/srv/www/html/first.tst/index.php"}
+      - { src: "index.php", dest: "/srv/www/html/second.tst/index.php"}
 
-  - name: create custom nginx log format
-    lineinfile:
-      path: /srv/nginx/conf/nginx.conf
-      line: '{{item}}'
-    with_items:
-      - 'log_format custom_format'
-      - '"$time_local $request_time $upstream_time $remote_addr $remote_user $time_local $request $status $body_bytes_sent $http_referer $http_user_agent $geoip_country_code";'
+#  - name: create custom nginx log format
+#    lineinfile:
+#      path: /srv/nginx/conf/nginx.conf
+#      line: '{{item}}'
+#    with_items:
+#      - 'log_format custom_format'
+#      - '"$time_local $request_time $upstream_time $remote_addr $remote_user $time_local $request $status $body_bytes_sent $http_referer $http_user_agent $geoip_country_code";'
+
+
+#  - name: Copying Nginx-proxy config
+#    copy:
+#      src: nginx-proxy.conf
+#      dest: "/srv/nginx/conf/nginx.conf"
+
+#  - name: Copying Apache1 first.tst virtual server config
+#    copy:
+#      src: apache01.conf
+#      dest: "/srv/apache/conf/apache01.conf"
+
+#  - name: Copying Apache2 second.tst virtual server config
+#    copy:
+#      src: apache02.conf
+#      dest: "/srv/apache/conf/apache02.conf"
 
   - name: create DNS records
     lineinfile:
