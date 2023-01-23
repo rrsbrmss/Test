@@ -68,111 +68,123 @@
       ports:
         - "80:80"
       volumes:
-        - "/srv/nginx/conf:/etc/nginx/conf.d"
         - "/srv/nginx/logs:/var/log/nginx"
-
-
+        - "/srv/nginx:/etc/nginx"
 
   - name: pull & run apache1 container
     docker_container:
-      name: apache1
+      name: apache01
       image: httpd:2.4-alpine
       network_mode: custom_network
       ports:
         - "8081:80"
       volumes:
-        - "/srv/apache/conf:/usr/local/apache2/conf"
-        - "/srv/apache/logs:/usr/local/apache2/logs"
+        - "/srv/apache01/conf:/usr/local/apache2/conf"
+        - "/srv/apache01/logs:/usr/local/apache2/logs"
+
   - name: pull & run apache2 container
     docker_container:
-      name: apache2
+      name: apache02
       image: httpd:2.4-alpine
       network_mode: custom_network
       ports:
         - "8082:80"
       volumes:
-        - "/srv/apache/conf:/usr/local/apache2/conf"
-        - "/srv/apache/logs:/usr/local/apache2/logs"
+        - "/srv/apache02/conf:/usr/local/apache2/conf"
+        - "/srv/apache02/logs:/usr/local/apache2/logs"
 
-  - name: pull & run nginx exporter container
-    docker_container:
-      name: nginx_exporter
-      image: bitnami/nginx-exporter:latest
-      network_mode: custom_network
+#  - name: pull & run nginx exporter container
+#    docker_container:
+#      name: nginx_exporter
+#      image: bitnami/nginx-exporter:latest
+#      network_mode: custom_network
 
-  - name: pull & run node exporter container
-    docker_container:
-      name: node_exporter
-      image: prom/node-exporter
-      network_mode: custom_network
+#  - name: pull & run node exporter container
+#    docker_container:
+#      name: node_exporter
+#      image: prom/node-exporter
+#      network_mode: custom_network
 
-  - name: pull & run mysql exporter container
-    docker_container:
-      name: mysql_exporter
-      image: prom/mysqld-exporter
-      network_mode: custom_network
+#  - name: pull & run mysql exporter container
+#    docker_container:
+#      name: mysql_exporter
+#      image: prom/mysqld-exporter
+#      network_mode: custom_network
 
-  - name: pull & run cadvisor container
-    docker_container:
-      name: cadvisor
-      image: google/cadvisor
-      network_mode: custom_network
+#  - name: pull & run cadvisor container
+#    docker_container:
+#      name: cadvisor
+#      image: google/cadvisor
+#      network_mode: custom_network
 
-  - name: pull & run prometheus container
-    docker_container:
-      name: prometheus
-      image: prom/prometheus
-      network_mode: custom_network
+#  - name: pull & run prometheus container
+#    docker_container:
+#      name: prometheus
+#      image: prom/prometheus
+#      network_mode: custom_network
 
-  - name: pull and run grafana container
-    docker_container:
-      name: grafana
-      image: grafana/grafana
-      network_mode: custom_network
+#  - name: pull and run grafana container
+#    docker_container:
+#      name: grafana
+#      image: grafana/grafana
+#      network_mode: custom_network
 
-  - name: pull & run fluentd container
-    docker_container:
-      name: fluentd
-      image: fluent/fluentd
-      network_mode: custom_network
+#  - name: pull & run fluentd container
+#    docker_container:
+#      name: fluentd
+#      image: fluent/fluentd
+#      network_mode: custom_network
 
-  - name: pull & run mysql container
-    docker_container:
-      name: mysql
-      image: mysql:5.7
-      network_mode: custom_network
-      env:
-        MYSQL_ROOT_PASSWORD: password
+#  - name: pull & run mysql container
+#    docker_container:
+#      name: mysql
+#      image: mysql:5.7
+#      network_mode: custom_network
+#      env:
+#        MYSQL_ROOT_PASSWORD: password
  
-  - name: pull & run php container
-    docker_container:
-      name: php-fpm
-      image: php:7.2-fpm
-      network_mode: custom_network
-      volumes:
-        - "/srv/www/html:/var/www/html"
-
-  - name: create directories
-    file:
-      path: "/srv/{{item}}"
-      state: directory
-    with_items:
-      - nginx/conf
-      - apache/conf
-      - mysql/conf
-      - www/html/first
-      - www/html/second
-
-  - name: create config files
-    template:
+#  - name: pull & run php container
+#    docker_container:
+#      name: php-fpm
+#      image: php:7.2-fpm
+#      network_mode: custom_network
+#      volumes:
+#        - "/srv/www/html:/var/www/html"
+ 
+  - name: copy neccessary files&dirs stru to node
+    copy:
       src: "{{item.src}}"
       dest: "{{item.dest}}"
-    with_items:
-      - { src: "nginx.conf.j2", dest: "/srv/nginx/conf/nginx.conf"}
-      - { src: "apache.conf.j2", dest: "/srv/apache/conf/apache.conf"}
-      - { src: "mysql.conf.j2", dest: "/srv/mysql/conf/mysql.conf"}
-      - { src: "index.php", dest: "/srv/www/html/first.tst/index.php"}
-      - { src: "index.php", dest: "/srv/www/html/second.tst/index.php"}
+    loop:
+      - src: nginx/nginx.conf
+        dest: /srv/nginx/nginx.conf
+      - src: nginx/
+        dest: /srv/nginx
+
+
+#  - name: create directories
+#    file:
+#      path: "/srv/{{item}}"
+#      state: directory
+#    with_items:
+#      - nginx/conf.d
+#      - nginx/modules-enabled
+#      - nginx/sites-enabled
+#      - apache/conf
+#      - mysql/conf
+#      - www/html/first.tst
+#      - www/html/second.tst
+
+#  - name: create config files
+#    template:
+#      src: "{{item.src}}"
+#      dest: "{{item.dest}}"
+#    with_items:
+#      - { src: "nginx/nginx.conf", dest: "/srv/nginx/nginx.conf"}
+#      - { src: "apache.conf.j2", dest: "/srv/apache/conf/apache.conf"}
+#      - { src: "mysql.conf.j2", dest: "/srv/mysql/conf/mysql.conf"}
+#      - { src: "index.php", dest: "/srv/www/html/first.tst/index.php"}
+#      - { src: "index.php", dest: "/srv/www/html/second.tst/index.php"}
 
 #  - name: create custom nginx log format
 #    lineinfile:
@@ -206,14 +218,14 @@
       - '10.0.0.2 nginx'
       - '10.0.0.3 apache1'
       - '10.0.0.4 apache2'
-      - '10.0.0.5 node_exporter'
-      - '10.0.0.6 nginx_exporter'
-      - '10.0.0.7 mysql_exporter'
-      - '10.0.0.8 cadvisor'
-      - '10.0.0.9 prometheus'
-      - '10.0.0.10 grafana'
-      - '10.0.0.11 fluentd'
-      - '10.0.0.12 mysql'
+#      - '10.0.0.5 node_exporter'
+#      - '10.0.0.6 nginx_exporter'
+#      - '10.0.0.7 mysql_exporter'
+#      - '10.0.0.8 cadvisor'
+#      - '10.0.0.9 prometheus'
+#      - '10.0.0.10 grafana'
+#      - '10.0.0.11 fluentd'
+#      - '10.0.0.12 mysql'
       - '10.0.0.2 first.tst'
       - '10.0.0.2 second.tst'
   - name: Restart Docker service
@@ -224,24 +236,25 @@
   - name: Restart Nginx container
     command: docker restart nginx
   - name: Restart Apache containers
-    command: docker restart apache1
+    command: docker restart apache01
   - name: Restart Apache containers
-    command: docker restart apache2
-  - name: Restart Node exporter container
-    command: docker restart node_exporter
-  - name: Restart Nginx exporter container
-    command: docker restart nginx_exporter
-  - name: Restart MySQL exporter container
-    command: docker restart mysql_exporter
-  - name: Restart Cadvisor container
-    command: docker restart cadvisor
-  - name: Restart Prometheus container
-    command: docker restart prometheus
-  - name: Restart Grafana container
-    command: docker restart grafana
-  - name: Restart Fluentd container
-    command: docker restart fluentd
-  - name: Restart MySQL container
-    command: docker restart mysql
-  - name: Check if all containers are running
-    command: docker ps
+    command: docker restart apache02
+
+#  - name: Restart Node exporter container
+#    command: docker restart node_exporter
+# - name: Restart Nginx exporter container
+#    command: docker restart nginx_exporter
+#  - name: Restart MySQL exporter container
+#    command: docker restart mysql_exporter
+#  - name: Restart Cadvisor container
+#    command: docker restart cadvisor
+#  - name: Restart Prometheus container
+#    command: docker restart prometheus
+#  - name: Restart Grafana container
+#    command: docker restart grafana
+#  - name: Restart Fluentd container
+#    command: docker restart fluentd
+#  - name: Restart MySQL container
+#    command: docker restart mysql
+#  - name: Check if all containers are running
+#    command: docker ps
