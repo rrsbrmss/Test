@@ -63,13 +63,14 @@
   - name: pull & run nginx_geoip container
     docker_container:
       name: nginx
-      image: anroe/nginx-geoip2
+      image: k0ka/nginx-geoip2
       network_mode: custom_network
       ports:
         - "80:80"
       volumes:
         - "/srv/nginx/logs:/var/log/nginx"
         - "/srv/nginx:/etc/nginx"
+        - "/srv/nginx/html:/var/www/html"
 
   - name: pull & run apache1 container
     docker_container:
@@ -156,8 +157,6 @@
       src: "{{item.src}}"
       dest: "{{item.dest}}"
     loop:
-      - src: nginx/nginx.conf
-        dest: /srv/nginx/nginx.conf
       - src: nginx/
         dest: /srv/nginx
 
@@ -188,11 +187,10 @@
 
 #  - name: create custom nginx log format
 #    lineinfile:
-#      path: /srv/nginx/conf/nginx.conf
+#      path: /srv/nginx/conf.d/log_format.conf
 #      line: '{{item}}'
 #    with_items:
-#      - 'log_format custom_format'
-#      - '"$time_local $request_time $upstream_time $remote_addr $remote_user $time_local $request $status $body_bytes_sent $http_referer $http_user_agent $geoip_country_code";'
+#      - 'log_format custom "$time_local $request_time $upstream_connect_time $remote_addr $remote_user $time_local $request $status $body_bytes_sent $http_referer $http_user_agent";'
 
 
 #  - name: Copying Nginx-proxy config
@@ -226,8 +224,8 @@
 #      - '10.0.0.10 grafana'
 #      - '10.0.0.11 fluentd'
 #      - '10.0.0.12 mysql'
-      - '10.0.0.2 first.tst'
-      - '10.0.0.2 second.tst'
+      - '127.0.0.1 first.domain.name'
+      - '127.0.0.1 second.domain.name'
   - name: Restart Docker service
     service:
       name: docker
