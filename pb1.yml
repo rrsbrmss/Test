@@ -72,27 +72,30 @@
         - "/srv/nginx:/etc/nginx"
         - "/srv/nginx/html:/var/www/html"
 
-  - name: pull & run apache1 container
+
+  - name: pull & run apache01 container
     docker_container:
       name: apache01
-      image: httpd:2.4-alpine
+      image: httpd
       network_mode: custom_network
       ports:
         - "8081:80"
       volumes:
-        - "/srv/apache01/conf:/usr/local/apache2/conf"
-        - "/srv/apache01/logs:/usr/local/apache2/logs"
+        - "/srv/apache01:/etc/apache2"
+        - "/srv/apache01/logs:/var/log/apache2"
+        - "/srv/apache01/html:/var/www/html"
 
-  - name: pull & run apache2 container
+  - name: pull & run apache02 container
     docker_container:
       name: apache02
-      image: httpd:2.4-alpine
+      image: httpd
       network_mode: custom_network
       ports:
         - "8082:80"
       volumes:
-        - "/srv/apache02/conf:/usr/local/apache2/conf"
-        - "/srv/apache02/logs:/usr/local/apache2/logs"
+        - "/srv/apache02:/etc/apache2"
+        - "/srv/apache02/logs:/var/log/apache2"
+        - "/srv/apache02/html:/var/www/html"
 
 #  - name: pull & run nginx exporter container
 #    docker_container:
@@ -144,14 +147,6 @@
 #      env:
 #        MYSQL_ROOT_PASSWORD: password
  
-#  - name: pull & run php container
-#    docker_container:
-#      name: php-fpm
-#      image: php:7.2-fpm
-#      network_mode: custom_network
-#      volumes:
-#        - "/srv/www/html:/var/www/html"
- 
   - name: copy neccessary files&dirs stru to node
     copy:
       src: "{{item.src}}"
@@ -159,54 +154,23 @@
     loop:
       - src: nginx/
         dest: /srv/nginx
+      - src: apache01/
+        dest: /srv/apache01
+      - src: apache02/
+        dest: /srv/apache02
 
-
-#  - name: create directories
-#    file:
-#      path: "/srv/{{item}}"
-#      state: directory
-#    with_items:
-#      - nginx/conf.d
-#      - nginx/modules-enabled
-#      - nginx/sites-enabled
-#      - apache/conf
-#      - mysql/conf
-#      - www/html/first.tst
-#      - www/html/second.tst
-
-#  - name: create config files
+#  - name: copy config files
 #    template:
 #      src: "{{item.src}}"
 #      dest: "{{item.dest}}"
 #    with_items:
-#      - { src: "nginx/nginx.conf", dest: "/srv/nginx/nginx.conf"}
-#      - { src: "apache.conf.j2", dest: "/srv/apache/conf/apache.conf"}
-#      - { src: "mysql.conf.j2", dest: "/srv/mysql/conf/mysql.conf"}
+#      - { src: "apache/apache2.conf", dest: "/srv/apache01/apache2.conf"}
+#      - { src: "apache/apache2.conf", dest: "/srv/apache02/apache2.conf"}
+#      - { src: "apache/ports.conf", dest: "/srv/apache01/ports.conf"}
+#      - { src: "apache/ports.conf", dest: "/srv/apache02/ports.conf"}
 #      - { src: "index.php", dest: "/srv/www/html/first.tst/index.php"}
 #      - { src: "index.php", dest: "/srv/www/html/second.tst/index.php"}
 
-#  - name: create custom nginx log format
-#    lineinfile:
-#      path: /srv/nginx/conf.d/log_format.conf
-#      line: '{{item}}'
-#    with_items:
-#      - 'log_format custom "$time_local $request_time $upstream_connect_time $remote_addr $remote_user $time_local $request $status $body_bytes_sent $http_referer $http_user_agent";'
-
-
-#  - name: Copying Nginx-proxy config
-#    copy:
-#      src: nginx-proxy.conf
-#      dest: "/srv/nginx/conf/nginx.conf"
-
-#  - name: Copying Apache1 first.tst virtual server config
-#    copy:
-#      src: apache01.conf
-#      dest: "/srv/apache/conf/apache01.conf"
-
-#  - name: Copying Apache2 second.tst virtual server config
-#    copy:
-#      src: apache02.conf
-#      dest: "/srv/apache/conf/apache02.conf"
 
   - name: create DNS records
     lineinfile:
@@ -214,8 +178,8 @@
       line: '{{item}}'
     with_items:
       - '10.0.0.2 nginx'
-      - '10.0.0.3 apache1'
-      - '10.0.0.4 apache2'
+      - '10.0.0.3 apache01'
+      - '10.0.0.4 apache02'
 #      - '10.0.0.5 node_exporter'
 #      - '10.0.0.6 nginx_exporter'
 #      - '10.0.0.7 mysql_exporter'
@@ -224,8 +188,8 @@
 #      - '10.0.0.10 grafana'
 #      - '10.0.0.11 fluentd'
 #      - '10.0.0.12 mysql'
-      - '127.0.0.1 first.domain.name'
-      - '127.0.0.1 second.domain.name'
+      - '192.168.1.100 first.domain.name'
+      - '192.168.1.100 second.domain.name'
   - name: Restart Docker service
     service:
       name: docker
